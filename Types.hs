@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------
 -- Basic definition of types and terms
 --------------------------------------------------------------------------
+{-# LANGUAGE InstanceSigs #-}
 module Types( 
             -- * Definitions
               Name, Id
@@ -33,8 +34,31 @@ module Types(
 
             ) where
 
-import List( partition )
+import Data.List( partition )
 import PPrint
+    ( show,
+      Doc,
+      Pretty(pretty),
+      list,
+      punctuate,
+      hsep,
+      vcat,
+      (<>),
+      (<+>),
+      (</>),
+      softline,
+      parens,
+      brackets,
+      semi,
+      comma,
+      dot,
+      hang,
+      align,
+      empty,
+      char,
+      text,
+      line )
+import Prelude hiding ((<>), (<$>))
 import Data.IORef( IORef, readIORef )
 import System.IO.Unsafe( unsafePerformIO )
 --------------------------------------------------------------------------
@@ -109,16 +133,22 @@ rankInf :: Rank
 rankInf = maxBound
 
 -- Accessors
+tvFlavour :: TypeVar -> Flavour
 tvFlavour (TypeVar _ fl) = fl
+tvId :: TypeVar -> Id
 tvId      (TypeVar id _) = id
+tvIds :: [TypeVar] -> [Id]
 tvIds typeVars  = map tvId typeVars
 
+isBound :: Flavour -> Bool
 isBound Bound = True
 isBound _     = False
 
+isUni :: Flavour -> Bool
 isUni (Uni _ _) = True
 isUni _         = False
 
+isSkolem :: Flavour -> Bool
 isSkolem Skolem = True
 isSkolem _      = False
 
@@ -245,9 +275,11 @@ assertM msg test
 -- Equality for type variables is based solely on the identifier
 --------------------------------------------------------------------------
 instance Eq TypeVar where
+  (==) :: TypeVar -> TypeVar -> Bool
   (TypeVar id1 fl1) == (TypeVar id2 fl2)  = (id1 == id2)
 
 instance Ord TypeVar where
+  compare :: TypeVar -> TypeVar -> Ordering
   compare (TypeVar id1 fl1) (TypeVar id2 fl2)  = compare id1 id2
 
 
@@ -257,29 +289,37 @@ instance Ord TypeVar where
 --------------------------------------------------------------------------
 
 instance Pretty Term where
+  pretty :: Term -> Doc
   pretty term = ppTerm PrecTop term
 
 instance Pretty Type where
+   pretty :: Type -> Doc
    pretty tp  = ppTypeEx [] PrecTop tp
 
 instance Pretty Annot where
+   pretty :: Annot -> Doc
    pretty ann = ppAnnot ann
 
 instance Pretty TypeVar where
+   pretty :: TypeVar -> Doc
    pretty (TypeVar id Bound)     = text "@" <> pretty id
    pretty (TypeVar id Skolem)    = text "_" <> pretty id
    pretty (TypeVar id (Uni _ _)) = text "$" <> pretty id
 
 instance Show Term where
+  show :: Term -> String
   show t = show (pretty t)
 
 instance Show Type where
+  show :: Type -> String
   show t = show (pretty t)
 
 instance Show TypeVar where
+  show :: TypeVar -> String
   show t = show (pretty t)
 
 instance Show Annot where
+  show :: Annot -> String
   show ann = show (pretty ann)
 
 
@@ -354,6 +394,7 @@ ppTermEx prec term
     ppLam arrow (ALam v ann e)    = parens (text v <> text "::" <> pretty ann) <+> ppLam arrow e
     ppLam arrow e                 = text arrow <+> ppTerm PrecFun e
 
+elements :: [Term] -> Term -> Maybe [Term]
 elements acc (Var "[]")                 = Just (reverse acc)
 elements acc (App (App (Var ":") e) es) = elements (e:acc) es
 elements acc _                          = Nothing
@@ -397,6 +438,7 @@ ppRank r
 --------------------------------------------------------------------------
 -- Pretty print bound identifiers nicely
 --------------------------------------------------------------------------
+ppNice :: (Eq a, Show a) => [(a, [Char])] -> a -> Doc
 ppNice nice id
   = case lookup id nice of
       Nothing     -> text ("@" ++ show id) -- this can happen due to updateable references :-( 

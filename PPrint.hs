@@ -59,8 +59,8 @@ module PPrint
         , color, bcolor
         , writeDoc
         ) where
-
-import IO           -- (Handle,hPutStr,hPutChar,stdout,openFile,hClose)
+import Prelude hiding ((<>), (<$>))
+import System.IO           -- (Handle,hPutStr,hPutChar,stdout,openFile,hClose)
 
 
 infixr 5 </>,<//>,<$>,<$$>

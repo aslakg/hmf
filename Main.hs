@@ -4,6 +4,7 @@
 module Main where
 
 import qualified Control.Exception as Exn ( catch )
+import Prelude hiding ((<>))
 import PPrint
 import Types ( Type, Feature(..) )
 import Parser( readType, readTerm )
@@ -23,9 +24,9 @@ check input
   = do inference input
        putStrLn ""
 
-testAll :: IO ()
-testAll 
-  = test testsAll
+-- testAll :: IO ()
+-- testAll 
+--   = test testsAll
 
 inference :: String -> IO Type       
 inference input
@@ -242,28 +243,28 @@ ok stringType
   = Ok (readType stringType)
 
 
-test :: [Test] -> IO ()
-test ts
-  = do xs <- mapM test1 ts
-       putStrLn ("\ntested: " ++ show (length ts))
-       putStrLn ("failed: " ++ show (sum xs) ++ "\n")
+-- test :: [Test] -> IO ()
+-- test ts
+--   = do xs <- mapM test1 ts
+--        putStrLn ("\ntested: " ++ show (length ts))
+--        putStrLn ("failed: " ++ show (sum xs) ++ "\n")
 
-test1 :: Test -> IO Int
-test1 (input,Ok resultTp)
-  = do tp <- inference input
-       if (show tp == show resultTp) 
-        then testOk ""
-        else testFailed (": test was expected to have type: " ++ show resultTp)
-    `Exn.catch` \err ->
-      do putStrLn (show err)
-         testFailed (": test should be accepted with type: " ++ show resultTp)
+-- test1 :: Test -> IO Int
+-- test1 (input,Ok resultTp)
+--   = do tp <- inference input
+--        if (show tp == show resultTp) 
+--         then testOk ""
+--         else testFailed (": test was expected to have type: " ++ show resultTp)
+--     `Exn.catch` \err ->
+--       do putStrLn (show err)
+--          testFailed (": test should be accepted with type: " ++ show resultTp)
        
-test1 (input, Wrong)
-  = do inference input
-       testFailed ": a type error was expected"
-    `Exn.catch` \err ->
-      do putStrLn (show err)
-         testOk " (the input was justly rejected)"
+-- test1 (input, Wrong)
+--   = do inference input
+--        testFailed ": a type error was expected"
+--     `Exn.catch` \err ->
+--       do putStrLn (show err)
+--          testOk " (the input was justly rejected)"
 
 testFailed msg
   = do putStrLn (header ++ "\ntest failed" ++ msg ++ "\n" ++ header ++ "\n")

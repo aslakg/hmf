@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------
 -- The type environment Gamma
 --------------------------------------------------------------------------
+{-# LANGUAGE InstanceSigs #-}
 module Gamma( Gamma
             , gamma0  -- the initial gamma
             , gammaFind
@@ -83,20 +84,25 @@ gammaCreate :: [(String,String)] -> Gamma
 gammaCreate bindings
   = gammaFromList $ [(name,readType tp) | (name,tp) <- bindings]
 
+gammaEmpty :: Gamma
 gammaEmpty 
   = Gamma 0 Map.empty 
 
+gammaFromList :: [(Name, Type)] -> Gamma
 gammaFromList xs
   = Gamma 0 (Map.fromList xs)
 
+gammaFind :: Gamma -> Name -> Type
 gammaFind (Gamma d g) name
   = case Map.lookup name g of
       Nothing -> error ("unbound variable: " ++ name)
       Just tp -> tp
 
+gammaExtend :: Gamma -> Name -> Type -> Gamma
 gammaExtend (Gamma d g) name tp
   = Gamma d (Map.insert name tp g)
 
+gammaExtendLam :: Gamma -> Name -> Type -> Gamma
 gammaExtendLam (Gamma d g) name tp
   = Gamma (d+1) (Map.insert name tp g)
 
@@ -105,6 +111,7 @@ gammaDepth (Gamma d m)
   = d
 
 instance Show Gamma where
+  show :: Gamma -> String
   show (Gamma d g)  = show g
 
 

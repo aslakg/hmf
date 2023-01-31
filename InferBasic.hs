@@ -5,11 +5,25 @@
 --------------------------------------------------------------------------
 module InferBasic( inferType, features ) where
 
-import PPrint
+import PPrint ()
 import Types
-import Operations   
+    ( Type(TApp, TCon, Forall), Term(..), Feature, mkFun, annotAny )
+import Operations
+    ( Infer,
+      HasTypeVar(subst),
+      generalize,
+      instantiate,
+      instantiateAnnot,
+      check,
+      uniqueReset )   
 import Unify        ( unify, subsume, matchfun )
 import Gamma
+    ( Gamma,
+      gamma0,
+      gammaFind,
+      gammaExtend,
+      gammaExtendLam,
+      gammaDepth )
 
 features :: [Feature]
 features = []  -- no special features
@@ -65,6 +79,7 @@ infer gamma (Rigid expr)
 
 
 -- | Is this a monotype?  (Only works for types that have been substituted)
+isTau :: Type -> Bool
 isTau (Forall _ _) = False
 isTau (TApp t1 t2) = isTau t1 && isTau t2
 isTau _            = True
